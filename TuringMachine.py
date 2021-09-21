@@ -17,6 +17,8 @@ class TuringMachine:
     self.file = open(fileName, "r")
     self.separate()
 
+# ------------------------------------------------------------------------ #
+
   # separate
   # Separa todas as informações do arquivo em suas respectivas variáveis, de forma a facilitar o uso pela máquina
   def separate(self):
@@ -25,6 +27,11 @@ class TuringMachine:
     # Grava alfabeto da fita
     self.alphabet = self.removeSlashN(lines[0])
 
+    # Mensagem de erro caso o alfabeto possua mais de 30 símbolos.
+    if len(self.alphabet) > 30:
+      print("Error: Number of symbols on alphabet exceeded the maximum value of 30.")
+      return
+
     # Mensagem de erro caso a máquina possua mais de 50 estados.
     if int(lines[1]) > 50:
       print("Error: Number of states exceeded the maximum value of 50.")
@@ -32,6 +39,9 @@ class TuringMachine:
 
     # Grava o último estado disponível, que será o estado de aceitação
     self.qAccept = self.removeSlashN(lines[1])
+
+    # Assume-se que o estado inicial seja sempre q1
+    self.q0 = "1"
 
     # Percorre todas as transições (baseado na quantidade de transições) salvando cada uma como array e sendo adicionada a lsita de transições
     transitionQtt = int(lines[2])
@@ -44,12 +54,9 @@ class TuringMachine:
       if counter - 3 >= transitionQtt:
         break
 
-    # Assume-se que o estado inicial seja sempre q1
-    self.q0 = "1"
-
     # Mensagem de erro caso a quantidade de palavras para teste seja maior que 100
     wordQtt = int(lines[counter])
-    if wordQtt > 50:
+    if wordQtt > 100:
       print("Error: Number of words exceeded the maximum value of 100.")
       return
 
@@ -63,16 +70,15 @@ class TuringMachine:
         break
     
     self.file.close()
+
+# ------------------------------------------------------------------------ #
     
   # removeSlashN: Recebe como parâmetro uma palavra
   # Remove o divisor de linha "\n" das strings
   def removeSlashN(self, word):
     return str(word.replace("\n", ""))
 
-  # printf
-  # Imprime o conteúdo completo do arquivo de entrada
-  def printf(self):
-    print(self.file.read())
+# ------------------------------------------------------------------------ #
 
   # run: Recebe uma palavra como parâmetro
   # Executa a Máquina de Turing com as instruções passadas sob a palavra recebida
@@ -92,12 +98,14 @@ class TuringMachine:
     while True:
       # Testa se estamos no estado de aceitação
       if state == self.qAccept:
-        return print(word, f"{bc.GREEN}OK{bc.ENDC}")
+        print(word, f"{bc.GREEN}OK{bc.ENDC}")
+        return
 
       # Mensagem de erro caso o caractere da fita não esteja presente no alfabeto de entrada (e não seja um espaço em branco)
       if self.tape[readerPosition] not in self.alphabet and self.tape[readerPosition] not in "-":
-        print("Error: Character not present in tape alphabet.")
-        return print(word, f"{bc.RED}NOT OK{bc.ENDC}")
+        print(f"Error in word {bc.YELLOW}\"{word}\"{bc.ENDC}: Character not present in tape alphabet.")
+        print(word, f"{bc.RED}NOT OK{bc.ENDC}")
+        return
 
       # Percorre a lista de transições até encontrar a correta, e executa as instruções daquela transição
       for transition in self.transitions:
@@ -114,7 +122,9 @@ class TuringMachine:
         # Ou seja, a fita é rejeitada
         if transition == self.transitions[-1]:
           print(word, f"{bc.RED}NOT OK{bc.ENDC}")
-          return 
+          return
+ 
+# ------------------------------------------------------------------------ #
 
   # runMachineOnTests
   # Executa a Máquina de Turing com as instruções passadas sob as palavras de teste
@@ -123,9 +133,9 @@ class TuringMachine:
       self.run(word)
 
 ## Arquivo TXT -> Estrutura ##
-# Linha 1: alfabeto de entrada + alfabeto da fita
+# Linha 1: alfabeto de entrada + alfabeto da fita, <= 30
 # Linha 2: qtd de estados, ultimo sempre é aceitação, <= 50
 # Linha 3: qtd n de transições
 # Linha 4 a Linha n: transições
 # Linha n+1: qtd p de palavras pra teste
-# Linha n+2 a Linha p: palavras de teste, p<= 100
+# Linha n+2 a Linha n+2+p: palavras de teste, p<= 100
